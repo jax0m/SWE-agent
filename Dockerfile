@@ -35,7 +35,9 @@ WORKDIR /app
 #COPY ./Dockerfile_buildscripts/02_pythonDependencies.sh /usr/local/bin/02_pythonDependencies.sh
 #RUN chmod +x /usr/local/bin/02_pythonDependencies.sh
 #RUN /usr/local/bin/02_pythonDependencies.sh | tee ~/buildlogs/02_pythonDependencies.log
-RUN pip install --upgrade pip | tee ~/buildlogs/02_pythonDependencies.log
+# Updating the pip update and throwing in a call for legacy-cgi base on https://github.com/jax0m/SWE-agent/issues/3#issuecomment-2632057310
+RUN pip install --upgrade pip legacy-cgi | tee ~/buildlogs/02_pythonDependencies.log
+# RUN pip install --upgrade pip | tee ~/buildlogs/02_pythonDependencies.log
 
 # Install docker CLI and pull in/install repo for swe-agent
 # RUN git clone https://github.com/jax0m/SWE-agent .
