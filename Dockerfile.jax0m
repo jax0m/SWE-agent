@@ -1,0 +1,82 @@
+# FROM python:3.9
+# Use an official Ubuntu base image
+FROM ubuntu:22.04
+
+# Set environment variables
+ENV DEBIAN_FRONTEND=noninteractive
+
+# Create logging directory
+RUN mkdir -p ~/buildlogs
+
+# Stage 01 - Update installed packages
+COPY ./Dockerfile_buildscripts/01_updatebasepackages.sh /usr/local/bin/01_updatebasepackages.sh
+RUN chmod +x /usr/local/bin/01_updatebasepackages.sh
+RUN /usr/local/bin/01_updatebasepackages.sh | tee ~/buildlogs/01_updatebasepackages.log
+
+RUN echo "Installing docker" && \
+    curl -fsSL https://get.docker.com -o get-docker.sh && \
+    sh get-docker.sh && \
+    echo "Completed - Installed docker"
+
+# Add a user named 'sweagent'
+RUN useradd -m -s /bin/bash sweagent
+
+# Create working directory and assign ownership to the user
+RUN mkdir -p /app && \
+    chown -R sweagent:users /app
+
+# Move into working directory
+# WORKDIR /app
+
+RUN python -m venv /app
+
+# Stage 02 - Setup python environment and install python dependencies
+COPY ./Dockerfile_buildscripts/02_pythonDependencies.sh /usr/local/bin/02_pythonDependencies.sh
+RUN chmod +x /usr/local/bin/02_pythonDependencies.sh
+RUN /usr/local/bin/02_pythonDependencies.sh | tee ~/buildlogs/02_pythonDependencies.log
+
+# Install docker CLI and pull in/install repo for swe-agent
+# RUN git clone https://github.com/SWE-agent/SWE-agent .
+COPY / /app
+
+RUN pip install .
+
+# cp -r assets/ /usr/local/lib/python3.10/dist-packages/assets
+# cp -r config/ /usr/local/lib/python3.10/dist-packages/config
+# cp -r docs/ /usr/local/lib/python3.10/dist-packages/docs
+# cp -r scripts/ /usr/local/lib/python3.10/dist-packages/scripts
+# cp -r tests/ /usr/local/lib/python3.10/dist-packages/tests
+# cp -r tools/ /usr/local/lib/python3.10/dist-packages/tools
+# cp -r trajectories/ /usr/local/lib/python3.10/dist-packages/trajectories
+
+
+# RUN cd sweagent/frontend && npm install
+
+# Switch to the 'sweagent'
+# USER sweagent
+
+# nano /usr/local/lib/python3.10/dist-packages/sweagent/__init__.py
+    # edited line 25
+        # from: "PACKAGE_DIR = Path(__file__).resolve().parent"
+        # to:   "PACKAGE_DIR = Path("/app/sweagent/agent").resolve().parent"
+# also had to add trust into the directory
+    # git config --global --add safe.directory /app
+# seems like sub folders were not migrated as a part of the build process. had to do:
+    # cp -r sweagent/agent/hooks /usr/local/lib/python3.10/dist-packages/sweagent/agent/hooks
+
+#    at FSReqCallback.oncomplete (fs.js:168:21)
+#root@04235a8cd7c9:/app# cat web_api.log
+# INFO      This is SWE-agent version 1.0.0
+#           (c4aab360009d2989b7c4cd9574649a3af84f73f0) with SWE-ReX 1.1.0 ().
+#Traceback (most recent call last):
+#  File "/app/sweagent/api/server.py", line 20, in <module>
+#    from sweagent.api.hooks import AgentUpdateHook, EnvUpdateHook, MainUpdateHook, WebUpdate
+#  File "/usr/local/lib/python3.10/dist-packages/sweagent/api/hooks.py", line 15, in <module>
+#    from sweagent.run.hooks.abstract import RunHook
+#  File "/usr/local/lib/python3.10/dist-packages/sweagent/run/hooks/abstract.py", line 2, in <module>
+#    from sweagent.environment.swe_env import SWEEnv
+#  File "/usr/local/lib/python3.10/dist-packages/sweagent/environment/swe_env.py", line 5, in <module>
+#    from typing import Literal, Self
+#ImportError: cannot import name 'Self' from 'typing' (/usr/lib/python3.10/typing.py)
+
+CMD [ "echo All Done" ]
