@@ -214,8 +214,10 @@ def run_from_config(config: RunSingleConfig):
 def run_from_cli(args: list[str] | None = None):
     if args is None:
         args = sys.argv[1:]
+    # Ensure __doc__ is a string, defaulting to an empty string if None
+    module_doc = __doc__ if __doc__ is not None else ""
     help_text = (  # type: ignore
-        __doc__ + "\n[cyan][bold]=== ALL THE OPTIONS ===[/bold][/cyan]\n\n" + ConfigHelper().get_help(RunSingleConfig)
+        module_doc + "\n[cyan][bold]=== ALL THE OPTIONS ===[/bold][/cyan]\n\n" + ConfigHelper().get_help(RunSingleConfig)
     )
     run_from_config(BasicCLI(RunSingleConfig, help_text=help_text).get_config(args))  # type: ignore
 
