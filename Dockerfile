@@ -1,9 +1,4 @@
-FROM python:latest
-# Use an official Ubuntu base image
-# FROM ubuntu:22.04
-
-# Set environment variables
-# ENV DEBIAN_FRONTEND=noninteractive
+FROM python:3.13
 
 # Create logging directory
 RUN mkdir -p ~/buildlogs
