@@ -86,7 +86,18 @@ class RunSingleConfig(BaseSettings, cli_implicit_flags=False):
             user_id = getpass.getuser()
             problem_id = self.problem_statement.id
             model_id = self.agent.model.id
-            config_file = getattr(self, "_config_files", ["no_config"])[0]
+            # Ensure _config_files is at least an empty list to avoid AttributeError
+            config_files = getattr(self, "_config_files", [])
+
+            # Check if config_files is empty and set default_value appropriately
+            if config_files:
+                # Access the first element if the list is not empty
+                config_file = config_files[0]
+            else:
+                # Use your default value (like "no_config") if the list is empty
+                config_file = "no_config"
+
+            # Now you can safely use config_file, knowing it will always have a value
             if isinstance(config_file, Path):
                 config_file = config_file.stem
             self.output_dir = Path.cwd() / "trajectories" / user_id / f"{config_file}__{model_id}___{problem_id}"
